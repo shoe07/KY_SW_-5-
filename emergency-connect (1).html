@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Emergency Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #ff1f2e;
+      --red-glow: rgba(255,31,46,0.35);
+      --bg: #0d0d0f;
+      --surface: #17171a;
+      --surface2: #1f1f24;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f0;
+      --muted: #6b6b75;
+      --blue: #3a8cff;
+      --green: #3dd68c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV TABS ── */
+    .tab-bar {
+      display: flex;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .tab {
+      flex: 1; padding: 14px 8px;
+      text-align: center; font-size: 12px; font-weight: 600;
+      color: var(--muted); cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .tab.active { color: var(--red); border-color: var(--red); }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── HEADER ── */
+    .header {
+      position: relative; padding: 40px 24px 28px;
+      text-align: center; overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute; top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,31,46,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header-badge {
+      display: inline-block;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 3px; font-size: 11px;
+      color: var(--red); border: 1px solid var(--red);
+      padding: 3px 10px; border-radius: 2px;
+      margin-bottom: 12px; opacity: 0.85;
+    }
+    .header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(36px, 10vw, 52px);
+      letter-spacing: 2px; line-height: 1; color: #fff;
+    }
+    .header h1 span { color: var(--red); }
+    .header p { margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+    /* ── SOS BUTTON ── */
+    .sos-wrap { display: flex; justify-content: center; padding: 0 24px 24px; }
+    .sos-btn {
+      position: relative; width: 100%; max-width: 420px;
+      background: var(--red); color: #fff; border: none;
+      border-radius: 20px; padding: 0; cursor: pointer; overflow: hidden;
+      transition: transform 0.12s;
+      box-shadow: 0 8px 32px rgba(255,31,46,0.3);
+    }
+    .sos-btn:active { transform: scale(0.96); }
+    .sos-inner {
+      padding: 26px 20px 22px; position: relative; z-index: 1;
+    }
+    .sos-inner::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .sos-icon { font-size: 34px; display: block; margin-bottom: 4px; }
+    .sos-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 34px; letter-spacing: 3px; display: block; line-height: 1;
+    }
+    .sos-sub { display: block; font-size: 12px; margin-top: 5px; opacity: 0.75; }
+    .sos-btn::after {
+      content: ''; position: absolute; inset: -2px;
+      border-radius: 22px; border: 2px solid rgba(255,31,46,0.5);
+      animation: pulse-ring 2.5s ease-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%   { opacity: 0.8; transform: scale(1); }
+      70%  { opacity: 0;   transform: scale(1.04); }
+      100% { opacity: 0;   transform: scale(1.04); }
+    }
+
+    /* ── STATUS ── */
+    .status-bar {
+      display: flex; align-items: center; gap: 6px;
+      margin: 0 24px 20px; padding: 10px 14px;
+      background: var(--surface); border-radius: 10px;
+      border: 1px solid var(--border); font-size: 12px; color: var(--muted);
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 6px var(--green);
+      flex-shrink: 0; animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* ── CARDS ── */
+    .section { padding: 0 24px; margin-bottom: 14px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 18px; position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    .card-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px; }
+    input[type=text], input[type=tel] {
+      width:100%; padding:11px 13px; background:var(--surface2);
+      border:1px solid var(--border); border-radius:10px;
+      color:var(--text); font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; margin-bottom:12px; outline:none; -webkit-appearance:none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder { color:var(--muted); opacity:0.55; }
+    input:focus { border-color:rgba(255,31,46,0.5); box-shadow:0 0 0 3px rgba(255,31,46,0.08); }
+    input:last-child { margin-bottom:0; }
+
+    .save-btn {
+      width:100%; padding:12px; background:transparent;
+      border:1px solid var(--border); border-radius:10px;
+      color:var(--muted); font-family:'Noto Sans KR',sans-serif;
+      font-size:13px; font-weight:600; cursor:pointer;
+      transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .save-btn.saved { border-color:var(--green); color:var(--green); }
+
+    /* ── AED PAGE ── */
+    .aed-header { padding:20px 24px 14px; }
+    .aed-header h2 {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:26px; letter-spacing:1px; color:#fff;
+    }
+    .aed-header p { font-size:12px; color:var(--muted); margin-top:3px; }
+
+    .aed-controls { padding:0 24px 14px; display:flex; gap:10px; }
+    .locate-btn {
+      flex:1; padding:13px; background:var(--blue);
+      border:none; border-radius:12px; color:#fff;
+      font-family:'Noto Sans KR',sans-serif;
+      font-size:13px; font-weight:700; cursor:pointer;
+      transition:opacity 0.2s; display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .locate-btn:active { opacity:0.8; }
+    .locate-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+    /* ── MAP ── */
+    #map-container {
+      margin:0 24px; border-radius:16px; overflow:hidden;
+      border:1px solid var(--border); background:var(--surface2);
+      height:350px; position:relative;
+    }
+    #map { width:100%; height:100%; }
+    .map-placeholder {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:12px; color:var(--muted); font-size:13px; text-align:center; padding:24px;
+    }
+    .map-placeholder .mp-icon { font-size:44px; opacity:0.35; }
+
+    /* ── AED LIST ── */
+    #aed-list { margin:14px 24px 0; }
+    .aed-item {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:12px; padding:14px 16px; margin-bottom:10px;
+      display:flex; align-items:flex-start; gap:12px;
+      cursor:pointer; transition:border-color 0.2s;
+    }
+    .aed-item:active { border-color:var(--blue); }
+    .aed-num {
+      width:28px; height:28px; border-radius:50%;
+      background:rgba(58,140,255,0.12);
+      border:1px solid rgba(58,140,255,0.3);
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700; color:var(--blue); flex-shrink:0;
+    }
+    .aed-info { flex:1; min-width:0; }
+    .aed-name { font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
+    .aed-addr { font-size:12px; color:var(--muted); line-height:1.5; word-break:keep-all; }
+    .aed-dist { font-size:11px; color:var(--blue); margin-top:4px; font-weight:600; }
+    .aed-nav { font-size:11px; color:var(--muted); margin-top:2px; }
+
+    .aed-empty {
+      text-align:center; padding:32px 20px;
+      color:var(--muted); font-size:13px; line-height:1.8;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position:fixed; bottom:24px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:#1e1e23; border:1px solid var(--border);
+      color:var(--text); padding:11px 18px;
+      border-radius:12px; font-size:13px; font-weight:600;
+      box-shadow:0 8px 32px rgba(0,0,0,0.4);
+      transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      z-index:999; white-space:nowrap;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    .footer { text-align:center; padding:20px 24px 0; font-size:11px; color:var(--muted); line-height:1.6; }
+  </style>
+</head>
+<body>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('sos')">🆘 SOS 발송</div>
+    <div class="tab" onclick="switchTab('aed')">💊 AED 지도</div>
+  </div>
+
+  <!-- ══ PAGE 1: SOS ══ -->
+  <div class="page active" id="page-sos">
+    <div class="header">
+      <div class="header-badge">EMERGENCY SYSTEM</div>
+      <h1>SOS <span>응급</span> 연결</h1>
+      <p>버튼을 누르면 119 신고 + 보호자 위치 전송</p>
+    </div>
+
+    <div class="sos-wrap">
+      <button class="sos-btn" onclick="handleSOS()">
+        <div class="sos-inner">
+          <span class="sos-icon">🆘</span>
+          <span class="sos-label">SOS 발송</span>
+          <span class="sos-sub">119 신고 &amp; 보호자 위치 문자 전송</span>
+        </div>
+      </button>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      대기 중 —&nbsp;<span id="readyStatus">보호자 연락처를 입력하면 활성화됩니다</span>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <div class="card-title">🩺 의료 정보</div>
+        <label>지병 / 알레르기 / 혈액형</label>
+        <input type="text" id="medicalInfo" placeholder="예: 당뇨, 페니실린 알레르기, Rh+ A" oninput="autoSave()">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <div class="card-title">📞 보호자</div>
+        <label>보호자 연락처</label>
+        <input type="tel" id="guardianPhone" placeholder="010-1234-5678" oninput="onPhoneInput()">
+        <button class="save-btn" id="saveBtn" onclick="saveAll()">💾 정보 저장</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      저장된 정보는 기기에만 보관되며 외부로 전송되지 않습니다.<br>
+      SOS 발송 시 위치 권한이 필요합니다.
+    </div>
+  </div>
+
+  <!-- ══ PAGE 2: AED MAP ══ -->
+  <div class="page" id="page-aed">
+    <div class="aed-header">
+      <h2>💊 주변 AED 찾기</h2>
+      <p>현재 위치 기준 반경 1.5km 내 자동제세동기</p>
+    </div>
+
+    <div class="aed-controls">
+      <button class="locate-btn" id="locateBtn" onclick="findAED()">
+        📍 내 위치로 AED 검색
+      </button>
+    </div>
+
+    <div id="map-container">
+      <div class="map-placeholder" id="map-placeholder">
+        <div class="mp-icon">🗺️</div>
+        <div>
+          <strong style="color:var(--text);display:block;margin-bottom:4px">"내 위치로 AED 검색"을 눌러주세요</strong>
+          주변 자동제세동기를 지도에 바로 표시합니다
+        </div>
+      </div>
+      <div id="map" style="display:none;width:100%;height:100%"></div>
+    </div>
+
+    <div id="aed-list"></div>
+    <div style="height:24px"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* ══════════════════════════════════════
+     탭 전환
+  ══════════════════════════════════════ */
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) =>
+      t.classList.toggle('active', (i===0&&name==='sos')||(i===1&&name==='aed'))
+    );
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-'+name).classList.add('active');
+  }
+
+  /* ══════════════════════════════════════
+     초기 로드
+  ══════════════════════════════════════ */
+  window.onload = () => {
+    document.getElementById('medicalInfo').value   = localStorage.getItem('medicalInfo')   || '';
+    document.getElementById('guardianPhone').value = localStorage.getItem('guardianPhone') || '';
+    updateStatus(localStorage.getItem('guardianPhone') || '');
+  };
+
+  /* ══════════════════════════════════════
+     SOS 페이지
+  ══════════════════════════════════════ */
+  function updateStatus(phone) {
+    const el = document.getElementById('readyStatus');
+    if (phone) { el.textContent = phone + ' 에게 전송 준비됨'; el.style.color = 'var(--green)'; }
+    else        { el.textContent = '보호자 연락처를 입력하면 활성화됩니다'; el.style.color = ''; }
+  }
+  function onPhoneInput() { updateStatus(document.getElementById('guardianPhone').value); }
+
+  let autoSaveTimer;
+  function autoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() =>
+      localStorage.setItem('medicalInfo', document.getElementById('medicalInfo').value), 800
+    );
+  }
+
+  function saveAll() {
+    localStorage.setItem('medicalInfo',   document.getElementById('medicalInfo').value);
+    localStorage.setItem('guardianPhone', document.getElementById('guardianPhone').value);
+    const btn = document.getElementById('saveBtn');
+    btn.classList.add('saved'); btn.textContent = '✅ 저장 완료';
+    setTimeout(() => { btn.classList.remove('saved'); btn.textContent = '💾 정보 저장'; }, 2000);
+    showToast('정보가 저장되었습니다');
+  }
+
+  function handleSOS() {
+    const info  = document.getElementById('medicalInfo').value;
+    const phone = document.getElementById('guardianPhone').value;
+    localStorage.setItem('medicalInfo', info);
+    localStorage.setItem('guardianPhone', phone);
+
+    if (!phone) { showToast('⚠️ 보호자 연락처를 먼저 입력해주세요'); return; }
+    if (!('geolocation' in navigator)) { showToast('⚠️ 위치 기능을 지원하지 않습니다'); return; }
+
+    showToast('📡 위치 정보 가져오는 중...');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude, lon = pos.coords.longitude;
+        const msg = `[응급상황] 도움이 필요합니다!\n정보: ${info||'없음'}\n위치: https://www.google.com/maps?q=${lat},${lon}`;
+        window.location.href = 'tel:119';
+        setTimeout(() => { window.location.href = `sms:${phone}&body=${encodeURIComponent(msg)}`; }, 1500);
+      },
+      () => { showToast('⚠️ 위치 권한을 허용해주세요'); window.location.href = 'tel:119'; },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  }
+
+  /* ══════════════════════════════════════
+     AED 지도 — OpenStreetMap + Overpass API
+     (외부 API키 불필요, 완전 무료)
+  ══════════════════════════════════════ */
+  let mapIframe = null;
+  let userLat = null, userLon = null;
+
+  function findAED() {
+    const btn = document.getElementById('locateBtn');
+    btn.disabled = true;
+    btn.textContent = '📡 위치 확인 중...';
+
+    if (!('geolocation' in navigator)) {
+      showToast('⚠️ 위치 기능을 지원하지 않습니다');
+      resetBtn(btn); return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userLat = pos.coords.latitude;
+        userLon = pos.coords.longitude;
+        btn.textContent = '🔍 AED 검색 중...';
+        showOSMMap(userLat, userLon);
+        searchOverpass(userLat, userLon, btn);
+      },
+      () => {
+        showToast('⚠️ 위치 권한을 허용해주세요 (설정 > 개인정보 > 위치)');
+        resetBtn(btn);
+      },
+      { timeout: 12000, enableHighAccuracy: true }
+    );
+  }
+
+  function showOSMMap(lat, lon) {
+    document.getElementById('map-placeholder').style.display = 'none';
+    const mapEl = document.getElementById('map');
+    mapEl.style.display = 'block';
+
+    // OpenStreetMap embed — 키 없이 바로 사용 가능
+    const bbox = `${lon-0.012},${lat-0.009},${lon+0.012},${lat+0.009}`;
+    mapEl.innerHTML = `<iframe
+      src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}"
+      style="width:100%;height:100%;border:none;"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+    ></iframe>`;
+  }
+
+  function searchOverpass(lat, lon, btn) {
+    // Overpass API: 반경 1.5km AED 노드 검색
+    const radius = 1500;
+    const query = encodeURIComponent(
+      `[out:json][timeout:20];(node["emergency"="defibrillator"](around:${radius},${lat},${lon});node["defibrillator"="yes"](around:${radius},${lat},${lon}););out body;`
+    );
+
+    fetch(`https://overpass-api.de/api/interpreter?data=${query}`)
+      .then(r => { if (!r.ok) throw new Error('network'); return r.json(); })
+      .then(data => {
+        resetBtn(btn);
+        const nodes = (data.elements || []).sort((a, b) =>
+          calcDist(lat, lon, a.lat, a.lon) - calcDist(lat, lon, b.lat, b.lon)
+        );
+
+        if (nodes.length === 0) {
+          renderEmpty(lat, lon);
+        } else {
+          renderList(nodes, lat, lon);
+          showToast(`주변 AED ${nodes.length}개 발견`);
+        }
+      })
+      .catch(() => {
+        resetBtn(btn);
+        renderEmpty(lat, lon);
+        showToast('⚠️ 데이터 로드 실패 — 아래 대체 링크를 이용하세요');
+      });
+  }
+
+  function renderList(nodes, myLat, myLon) {
+    const listEl = document.getElementById('aed-list');
+    const header = document.createElement('div');
+    header.style.cssText = 'padding:0 0 10px;font-size:12px;color:var(--muted)';
+    header.textContent = `반경 1.5km 내 AED ${nodes.length}개 발견 — 탭하면 길안내`;
+    listEl.innerHTML = '';
+    listEl.appendChild(header);
+
+    nodes.slice(0, 12).forEach((node, i) => {
+      const dist = calcDist(myLat, myLon, node.lat, node.lon);
+      const name = node.tags['name'] || node.tags['operator'] || node.tags['brand'] || 'AED';
+      const addr = node.tags['addr:full'] || node.tags['addr:street']
+        ? (node.tags['addr:street'] || '') + ' ' + (node.tags['addr:housenumber'] || '')
+        : '주소 정보 없음';
+
+      const item = document.createElement('div');
+      item.className = 'aed-item';
+      item.innerHTML = `
+        <div class="aed-num">${i+1}</div>
+        <div class="aed-info">
+          <div class="aed-name">${escHtml(name)}</div>
+          <div class="aed-addr">${escHtml(addr.trim())}</div>
+          <div class="aed-dist">📍 약 ${dist.toLocaleString()}m</div>
+          <div class="aed-nav" style="color:var(--blue);font-size:11px;margin-top:3px">→ 탭하여 길안내 열기</div>
+        </div>
+      `;
+      item.onclick = () => openNavi(node.lat, node.lon, name);
+      listEl.appendChild(item);
+    });
+  }
+
+  function renderEmpty(lat, lon) {
+    const listEl = document.getElementById('aed-list');
+    listEl.innerHTML = `
+      <div class="card">
+        <div style="text-align:center;padding:8px 0 4px">
+          <div style="font-size:30px;margin-bottom:10px">😔</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:6px">반경 1.5km 내 AED 정보 없음</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.7">
+            OpenStreetMap에 등록된 데이터가 없거나<br>네트워크 오류입니다.<br>공식 사이트에서 확인해 보세요.
+          </div>
+          <a href="https://www.e-gen.or.kr/egen/search_aed.do"
+             style="display:inline-block;background:var(--blue);color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;margin-bottom:8px">
+            🌐 공식 AED 사이트 바로가기
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ── 유틸 ── */
+  function calcDist(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+  }
+
+  function openNavi(lat, lon, name) {
+    // 카카오맵 앱 → 구글맵 fallback
+    const kakaomapApp = `kakaomap://route?ep=${lat},${lon}&by=FOOT`;
+    const googleMap   = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
+    window.location.href = kakaomapApp;
+    setTimeout(() => window.open(googleMap, '_blank'), 1200);
+  }
+
+  function resetBtn(btn) {
+    btn.disabled = false;
+    btn.textContent = '📍 내 위치로 AED 검색';
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+  </script>
+</body>
+</html>
