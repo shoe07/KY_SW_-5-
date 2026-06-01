@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>SaveMe – 응급 메시지</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <header class="top-bar">
+      <h1 class="logo">응급 메시지</h1>
+    </header>
+
+    <main class="page form-page">
+      <p class="subtitle">현재 위치, 지도 링크, 환자 정보를 확인한 뒤 보호자에게 전달할 수 있습니다.</p>
+
+      <div class="card">
+        <p class="card-title">위치 상태</p>
+        <p id="loc-status-msg" class="info-msg">위치가 아직 포함되지 않았습니다. 위치 확인 버튼을 누르면 지도 링크가 생성됩니다.</p>
+        <button class="secondary-btn" onclick="fetchLocation()">현재 위치 포함</button>
+      </div>
+
+      <div class="card">
+        <p class="card-title">미리보기</p>
+        <pre class="msg-preview" id="msg-preview"></pre>
+      </div>
+
+      <p class="disclaimer">문자 전송 결과는 플랫폼마다 다르게 표시됩니다. Android에서는 사용자가 실제로 전송했는지 앱이 정확히 알 수 없으므로, 전송 화면에서 직접 확인해 주세요.</p>
+
+      <div class="btn-row">
+        <button class="primary-btn" onclick="sendToGuardians()">보호자 문자</button>
+        <button class="secondary-btn" onclick="shareMessage()">공유하기</button>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item">SOS</a>
+      <a href="medical.html" class="nav-item">의료</a>
+      <a href="guardians.html" class="nav-item">보호자</a>
+      <a href="message.html" class="nav-item active">메시지</a>
+      <a href="aed.html" class="nav-item">AED</a>
+    </nav>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/message.js"></script>
+  <script>
+    initMessage();
+  </script>
+</body>
+</html>

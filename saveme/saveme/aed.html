@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>SaveMe – AED 위치</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <header class="top-bar">
+      <h1 class="logo">AED 위치</h1>
+    </header>
+
+    <main class="page aed-page">
+      <p class="subtitle">현재 위치 주변의 자동제세동기 위치를 조회합니다.</p>
+
+      <!-- Map placeholder -->
+      <div id="aed-map" class="map-box">
+        <div class="map-placeholder">
+          <span class="map-icon">🗺️</span>
+          <p>나</p>
+          <p class="map-sub">위치 기반 지도</p>
+          <p class="map-sub small">실제 위치는 현장 표지와 119 안내를 함께 확인</p>
+        </div>
+      </div>
+
+      <button class="secondary-btn" onclick="refreshAED()">내 위치 기준으로 다시 보기</button>
+
+      <div class="section-header">주변 AED 목록</div>
+      <div id="aed-list">
+        <p class="empty-msg">주변 AED 정보를 찾을 수 없습니다.</p>
+      </div>
+
+      <p class="disclaimer">이 화면의 AED 위치는 공공데이터포털 국립중앙의료원 API를 기반으로 표시됩니다. 실제 위급 상황에서는 주변 안내 표지, 119 상담, 건물 안내데스크 정보를 함께 확인하세요.</p>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-item">SOS</a>
+      <a href="medical.html" class="nav-item">의료</a>
+      <a href="guardians.html" class="nav-item">보호자</a>
+      <a href="message.html" class="nav-item">메시지</a>
+      <a href="aed.html" class="nav-item active">AED</a>
+    </nav>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/aed.js"></script>
+  <script>
+    initAED();
+  </script>
+</body>
+</html>
